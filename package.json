@@ -22,6 +22,7 @@
     "parcel-bundler": "^1.12.4"
   },
   "dependencies": {
-    "ecsy": "^0.2.4"
+    "ecsy": "^0.2.4",
+    "pixi.js": "^5.2.4"
   }
 }

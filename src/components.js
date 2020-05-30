@@ -1,53 +1,43 @@
-import { Vector2 } from "./math.js";
+import { SystemStateComponent } from "ecsy";
 
-export class Movement {
-    constructor() {
-        this.velocity = new Vector2();
-        this.acceleration = new Vector2();
+export class Position {
+    constructor(x = 0, y = 0) {
+        this.x = x;
+        this.y = y;
     }
 
     reset() {
-        this.velocity.set(0, 0);
-        this.acceleration.set(0, 0);
+        this.x = 0;
+        this.y = 0;
     }
 }
 
-export class Circle {
-    constructor() {
-        this.position = new Vector2();
-        this.radius = 0;
-        this.velocity = new Vector2();
-        this.acceleration = new Vector2();
+// Destination where entity should move
+export class Destination extends Position {}
+
+// Renderable component where display_object is PIXI.js DisplayObject
+export class Renderable {
+    constructor(display_object) {
+        this.display_object = display_object;
     }
 
     reset() {
-        this.position.set(0, 0);
-        this.radius = 0;
-        this.velocity.set(0, 0);
-        this.acceleration.set(0, 0);
+        this.display_object = null;
     }
 }
 
-export class CanvasContext {
-    constructor() {
-        this.ctx = null;
-        this.width = 0;
-        this.height = 0;
+// Marker component, that this entity was already added to the scene
+export class Rendered extends SystemStateComponent {
+    constructor(display_object) {
+        super();
+        this.display_object = display_object
     }
 }
 
-export class DemoSettings {
-    constructor() {
-        this.speedMultiplier = 0.001;
-    }
-}
-
-export class Intersecting {
-    constructor() {
-        this.points = [];
-    }
-
-    reset() {
-        this.points.length = 0;
+// Game grid
+export class Grid {
+    constructor(divisions, size) {
+        this.divisions = divisions;
+        this.size = size;
     }
 }

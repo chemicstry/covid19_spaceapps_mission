@@ -1,164 +1,120 @@
-import { System } from "ecsy";
+import { System, Not } from "ecsy";
 import {
-    CanvasContext,
-    DemoSettings,
-    Movement,
-    Circle,
-    Intersecting
+    Grid, Renderable, Rendered, Position, Destination
 } from "./components.js";
-import { fillCircle, drawLine, intersection } from "./utils.js";
+import * as PIXI from 'pixi.js';
 
-export class MovementSystem extends System {
-    execute(delta) {
-        var context = this.queries.context.results[0];
-        let canvasWidth = context.getComponent(CanvasContext).width;
-        let canvasHeight = context.getComponent(CanvasContext).height;
-        let multiplier = context.getComponent(DemoSettings).speedMultiplier;
-
-        let entities = this.queries.entities.results;
-        for (var i = 0; i < entities.length; i++) {
-        let entity = entities[i];
-        let circle = entity.getMutableComponent(Circle);
-        let movement = entity.getMutableComponent(Movement);
-
-        circle.position.x +=
-            movement.velocity.x * movement.acceleration.x * delta * multiplier;
-        circle.position.y +=
-            movement.velocity.y * movement.acceleration.y * delta * multiplier;
-
-        if (movement.acceleration.x > 1)
-            movement.acceleration.x -= delta * multiplier;
-        if (movement.acceleration.y > 1)
-            movement.acceleration.y -= delta * multiplier;
-        if (movement.acceleration.x < 1) movement.acceleration.x = 1;
-        if (movement.acceleration.y < 1) movement.acceleration.y = 1;
-
-        if (circle.position.y + circle.radius < 0)
-            circle.position.y = canvasHeight + circle.radius;
-
-        if (circle.position.y - circle.radius > canvasHeight)
-            circle.position.y = -circle.radius;
-
-        if (circle.position.x - circle.radius > canvasWidth)
-            circle.position.x = 0;
-
-        if (circle.position.x + circle.radius < 0)
-            circle.position.x = canvasWidth;
-        }
+export class HumanMovementSystem extends System {
+    execute(dt) {
+        this.queries.entities.results.forEach(e => {
+            let pos = e.getComponent(Position);
+            let dest = e.getComponent(Destination);
+            
+            // Must be more complicated (implement path finding?)
+            let dir_x = dest.x - pos.x;
+            let dir_y = dest.y - pos.y;
+            pos.x += Math.min(dir_x, 0.1) * dt
+            pos.y += Math.min(dir_y, 0.1) * dt
+        })
     }
 }
 
-MovementSystem.queries = {
-    entities: { components: [Circle, Movement] },
-    context: { components: [CanvasContext, DemoSettings], mandatory: true }
+HumanMovementSystem.queries = {
+    entities: { components: [Position, Destination] },
 };
 
-export class IntersectionSystem extends System {
+// Updates PIXI.js object positions from Position component
+export class PositionUpdateSystem extends System {
     execute() {
-        let entities = this.queries.entities.results;
-
-        for (var i = 0; i < entities.length; i++) {
-        let entity = entities[i];
-        if (entity.hasComponent(Intersecting)) {
-            entity.getMutableComponent(Intersecting).points.length = 0;
-        }
-
-        let circle = entity.getComponent(Circle);
-
-        for (var j = i + 1; j < entities.length; j++) {
-            let entityB = entities[j];
-            let circleB = entityB.getComponent(Circle);
-
-            var intersect = intersection(circle, circleB);
-            if (intersect !== false) {
-            var intersectComponent;
-            if (!entity.hasComponent(Intersecting)) {
-                entity.addComponent(Intersecting);
-            }
-            intersectComponent = entity.getMutableComponent(Intersecting);
-            intersectComponent.points.push(intersect);
-            }
-        }
-        if (
-            entity.hasComponent(Intersecting) &&
-            entity.getComponent(Intersecting).points.length === 0
-        ) {
-            entity.removeComponent(Intersecting);
-        }
-        }
-    }
-
-    stop() {
-        super.stop();
-        // Clean up interesection when stopping
-        let entities = this.queries.entities;
-
-        for (var i = 0; i < entities.length; i++) {
-        let entity = entities[i];
-        if (entity.hasComponent(Intersecting)) {
-            entity.getMutableComponent(Intersecting).points.length = 0;
-        }
-        }
+        this.queries.entities.results.forEach(e => {
+            let pos = e.getComponent(Position);
+            e.getComponent(Renderable).display_object.position.set(pos.x, pos.y);
+        })
     }
 }
 
-IntersectionSystem.queries = {
-    entities: { components: [Circle] }
+PositionUpdateSystem.queries = {
+    entities: { components: [Renderable, Position] },
 };
 
 export class Renderer extends System {
+    constructor(world, attributes){
+        super(world, attributes);
+        this.pixiApp = new PIXI.Application();
+        document.body.appendChild(this.pixiApp.view);
+
+        // Create isometric rendering by setting y scale to 0.5
+        this.isoScalingContainer = new PIXI.Container();
+        this.isoScalingContainer.scale.y = 0.5;
+        this.isoScalingContainer.position.set(this.pixiApp.screen.width / 2, this.pixiApp.screen.height / 2);
+        this.pixiApp.stage.addChild(this.isoScalingContainer);
+
+        // Rotate world container by 45 degrees
+        this.worldContainer = new PIXI.Container();
+        this.worldContainer.rotation = Math.PI / 4;
+        this.isoScalingContainer.addChild(this.worldContainer);
+    }
+
+    updateGrid(grid) {
+        // Recreate grid if dimensions changed
+        if (this.grid != grid) {
+            if (this.grid) {
+                this.worldContainer.removeChild(this.gridContainer);
+            }
+
+            this.grid = grid;
+            this.gridContainer = new PIXI.Graphics();
+            this.worldContainer.addChild(this.gridContainer);
+
+            let size_x = grid.size[0];
+            let step_x = size_x / grid.divisions[0];
+            let size_y = grid.size[1];
+            let step_y = size_x / grid.divisions[1];
+            this.worldContainer.position.set(0, -size_y/2);
+
+            // Draw grid lines
+            this.gridContainer.lineStyle(2, 0xffffff);
+            for (let i = 0; i <= size_x; i += step_x) {
+                this.gridContainer.moveTo(i, 0);
+                this.gridContainer.lineTo(i, size_y);
+            }
+            for (let i = 0; i <= size_y; i += step_y) {
+                this.gridContainer.moveTo(0, i);
+                this.gridContainer.lineTo(size_x, i);
+            }
+        }
+    }
+
+    renderThings(query) {
+        renderables.filter(r => !this.rendered.includes(r)).forEach(r => {
+            this.worldContainer.addChild(r);
+        });
+    }
+
     execute() {
-        var context = this.queries.context.results[0];
-        let canvasComponent = context.getComponent(CanvasContext);
-        let ctx = canvasComponent.ctx;
-        let canvasWidth = canvasComponent.width;
-        let canvasHeight = canvasComponent.height;
+        let ctx = this.queries.context.results[0];
+        this.updateGrid(ctx.getComponent(Grid));
+        
+        // Process newly added `Renderable` components
+        this.queries.added.results.forEach(e => {
+            let renderable = e.getComponent(Renderable);
+            this.worldContainer.addChild(renderable.display_object);
+            e.addComponent(Rendered, new Rendered(renderable.display_object));
+        });
 
-        ctx.fillStyle = "black";
-        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+        // Process removed `Renderable` components
+        this.queries.removed.results.forEach(e => {
+            let rendered = e.getComponent(Rendered);
+            this.worldContainer.removeChild(rendered.display_object);
+            e.removeComponent(Rendered);
+        });
 
-        let circles = this.queries.circles.results;
-        for (var i = 0; i < circles.length; i++) {
-        let circle = circles[i].getComponent(Circle);
-
-        ctx.beginPath();
-        ctx.arc(
-            circle.position.x,
-            circle.position.y,
-            circle.radius,
-            0,
-            2 * Math.PI,
-            false
-        );
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = "#fff";
-        ctx.stroke();
-        }
-
-        let intersectingCircles = this.queries.intersectingCircles.results;
-        for (let i = 0; i < intersectingCircles.length; i++) {
-        let intersect = intersectingCircles[i].getComponent(Intersecting);
-        for (var j = 0; j < intersect.points.length; j++) {
-            var points = intersect.points[j];
-            ctx.lineWidth = 2;
-            ctx.strokeStyle = "#ff9";
-
-            ctx.fillStyle = "rgba(255, 255,255, 0.2)";
-            fillCircle(ctx, points[0], points[1], 8);
-            fillCircle(ctx, points[2], points[3], 8);
-
-            ctx.fillStyle = "#fff";
-            fillCircle(ctx, points[0], points[1], 3);
-            fillCircle(ctx, points[2], points[3], 3);
-
-            drawLine(ctx, points[0], points[1], points[2], points[3]);
-        }
-        }
+        this.pixiApp.render();
     }
 }
 
 Renderer.queries = {
-    circles: { components: [Circle] },
-    intersectingCircles: { components: [Intersecting] },
-    context: { components: [CanvasContext], mandatory: true }
+    added: { components: [Renderable, Not(Rendered)] },
+    removed: { components: [Not(Renderable), Rendered] },
+    context: { components: [Grid], mandatory: true }
 };
