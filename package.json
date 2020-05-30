@@ -1,0 +1,24 @@
+{
+  "name": "covid19_spaceapps_mission",
+  "version": "1.0.0",
+  "description": "A game (fix me pls)",
+  "main": "index.js",
+  "scripts": {
+    "dev": "parcel src/index.html",
+    "build": "parcel build src/index.html",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chemicstry/covid19_spaceapps_mission.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/chemicstry/covid19_spaceapps_mission/issues"
+  },
+  "homepage": "https://github.com/chemicstry/covid19_spaceapps_mission#readme",
+  "devDependencies": {
+    "parcel-bundler": "^1.12.4"
+  }
+}
