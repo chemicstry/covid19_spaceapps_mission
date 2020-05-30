@@ -1,15 +1,15 @@
 import {World, System} from 'ecsy';
-import {Grid, Renderable, Position, Destination} from './components.js';
-import {Renderer, HumanMovementSystem, PositionUpdateSystem} from './systems.js';
+import {Grid, Renderable, Position, Destination, MovementPath} from './components.js';
+import {Renderer, HumanMovementSystem, PositionUpdateSystem, DestinationMovementSystem, PathMovementSystem} from './systems.js';
 import * as PIXI from 'pixi.js';
+import Victor from 'victor';
 
 function start_game() {
     var world = new World();
 
     world
-        .registerComponent(Destination)
-        .registerComponent(Position)
-        .registerSystem(HumanMovementSystem)
+        .registerSystem(PathMovementSystem)
+        .registerSystem(DestinationMovementSystem)
         .registerSystem(PositionUpdateSystem)
         .registerSystem(Renderer);
 
@@ -26,7 +26,7 @@ function start_game() {
     world.createEntity()
         .addComponent(Renderable, new Renderable(basicText))
         .addComponent(Position, new Position(0,0))
-        .addComponent(Destination, new Destination(100,100));
+        .addComponent(MovementPath, new MovementPath([new Victor(100, 0), new Victor(100, 50), new Victor(0, 50)]));
 
     var lastTime = performance.now();
     function update() {

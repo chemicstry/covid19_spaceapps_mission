@@ -1,25 +1,51 @@
 import { System, Not } from "ecsy";
 import {
-    Grid, Renderable, Rendered, Position, Destination
+    Grid, Renderable, Rendered, Position, Destination, MovementPath
 } from "./components.js";
 import * as PIXI from 'pixi.js';
+import Victor from "victor";
 
-export class HumanMovementSystem extends System {
+export class PathMovementSystem extends System {
+    execute() {
+        this.queries.entities.results.forEach(e => {
+            let path = e.getComponent(MovementPath);
+            
+            if (path.index < path.path.length) {
+                // Set next destination
+                e.addComponent(Destination, path.path[path.index])
+                path.index += 1;
+            } else {
+                // Path finished
+                e.removeComponent(MovementPath);
+            }
+        })
+    }
+}
+
+PathMovementSystem.queries = {
+    entities: { components: [MovementPath, Not(Destination)] },
+};
+
+export class DestinationMovementSystem extends System {
     execute(dt) {
         this.queries.entities.results.forEach(e => {
             let pos = e.getComponent(Position);
             let dest = e.getComponent(Destination);
             
             // Must be more complicated (implement path finding?)
-            let dir_x = dest.x - pos.x;
-            let dir_y = dest.y - pos.y;
-            pos.x += Math.min(dir_x, 0.1) * dt
-            pos.y += Math.min(dir_y, 0.1) * dt
+            if (dest.distanceSq(pos) < 1.0) {
+                pos.copy(dest);
+                e.removeComponent(Destination);
+            } else {
+                let dir = dest.clone().subtract(pos).norm();
+                let speed = new Victor(dt * 0.1, dt * 0.1);
+                pos.add(dir.multiply(speed));
+            }
         })
     }
 }
 
-HumanMovementSystem.queries = {
+DestinationMovementSystem.queries = {
     entities: { components: [Position, Destination] },
 };
 

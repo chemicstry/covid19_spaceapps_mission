@@ -1,19 +1,22 @@
 import { SystemStateComponent } from "ecsy";
+import Victor from "victor";
 
-export class Position {
-    constructor(x = 0, y = 0) {
-        this.x = x;
-        this.y = y;
+export class MovementPath {
+    constructor(path) {
+        this.path = path; // Array of Victor points
+        this.index = 0; // Index of the current point in path array
     }
 
     reset() {
-        this.x = 0;
-        this.y = 0;
+        this.path.length = 0;
+        this.index = 0;
     }
 }
 
+export class Position extends Victor {}
+
 // Destination where entity should move
-export class Destination extends Position {}
+export class Destination extends Victor {}
 
 // Renderable component where display_object is PIXI.js DisplayObject
 export class Renderable {
@@ -31,6 +34,10 @@ export class Rendered extends SystemStateComponent {
     constructor(display_object) {
         super();
         this.display_object = display_object
+    }
+
+    reset() {
+        this.display_object = null;
     }
 }
 
