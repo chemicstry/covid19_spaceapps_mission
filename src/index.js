@@ -15,7 +15,7 @@ function start_game() {
 
     // Singleton component (resources)
     world.createEntity()
-        .addComponent(Grid, new Grid([10, 10], [500, 500]));
+        .addComponent(Grid, new Grid(new Victor(100, 100), new Victor(20, 20), new Victor(500, 500)));
     
     const basicText = new PIXI.Text('Space Society Twente');
     basicText.x = 0;

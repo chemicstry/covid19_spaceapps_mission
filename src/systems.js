@@ -4,6 +4,7 @@ import {
 } from "./components.js";
 import * as PIXI from 'pixi.js';
 import Victor from "victor";
+import * as utils from "./utils.js";
 
 export class PathMovementSystem extends System {
     execute() {
@@ -23,6 +24,7 @@ export class PathMovementSystem extends System {
 }
 
 PathMovementSystem.queries = {
+    // Find entities that have a path, but no destination yet
     entities: { components: [MovementPath, Not(Destination)] },
 };
 
@@ -64,9 +66,15 @@ PositionUpdateSystem.queries = {
 };
 
 export class Renderer extends System {
-    constructor(world, attributes){
+    constructor(world, attributes) {
         super(world, attributes);
-        this.pixiApp = new PIXI.Application();
+
+        this.pixiApp = new PIXI.Application({
+            view: document.getElementById('game'),
+            backgroundColor: 0x1A1A60,
+            antialias: true,
+            autoResize: true,
+        });
         document.body.appendChild(this.pixiApp.view);
 
         // Create isometric rendering by setting y scale to 0.5
@@ -79,6 +87,30 @@ export class Renderer extends System {
         this.worldContainer = new PIXI.Container();
         this.worldContainer.rotation = Math.PI / 4;
         this.isoScalingContainer.addChild(this.worldContainer);
+
+        window.addEventListener('resize', () => this.on_resize());
+        this.on_resize();
+    }
+
+    on_resize() {
+        let defaultWidth = 800;
+        let defaultHeight = 600;
+
+        // Resize renderer
+        const parent = this.pixiApp.view.parentNode;
+        this.pixiApp.renderer.resize(parent.clientWidth, parent.clientHeight);
+
+        // Rescale from default 800x600 resolution
+        let scale = Math.min(parent.clientWidth / defaultWidth, parent.clientHeight / defaultHeight);
+        this.pixiApp.stage.scale.set(scale);
+
+        // Recenter
+        let gameWidth = defaultWidth * scale;
+        let gameHeight = defaultHeight * scale;
+        let offsetWidth = (parent.clientWidth - gameWidth) / 2;
+        let offsetHeight = (parent.clientHeight - gameHeight) / 2;
+        this.pixiApp.stage.position.x = offsetWidth;
+        this.pixiApp.stage.position.y = offsetHeight;
     }
 
     updateGrid(grid) {
@@ -89,25 +121,39 @@ export class Renderer extends System {
             }
 
             this.grid = grid;
-            this.gridContainer = new PIXI.Graphics();
+            this.gridContainer = new PIXI.Container();
+            this.gridGraphics = new PIXI.Graphics();
+            this.gridContainer.addChild(this.gridGraphics);
             this.worldContainer.addChild(this.gridContainer);
 
-            let size_x = grid.size[0];
-            let step_x = size_x / grid.divisions[0];
-            let size_y = grid.size[1];
-            let step_y = size_x / grid.divisions[1];
-            this.worldContainer.position.set(0, -size_y/2);
+            this.worldContainer.position.set(0, -grid.size.y/2);
 
-            // Draw grid lines
-            this.gridContainer.lineStyle(2, 0xffffff);
-            for (let i = 0; i <= size_x; i += step_x) {
-                this.gridContainer.moveTo(i, 0);
-                this.gridContainer.lineTo(i, size_y);
+            // Draw minor grid lines
+            this.gridGraphics.lineStyle(1, 0x5C5C8E, 0.4);
+            for (let i = -1000; i <= 1000; i += grid.minor_step.x) {
+                this.gridGraphics.moveTo(i, -10000);
+                this.gridGraphics.lineTo(i, 10000);
             }
-            for (let i = 0; i <= size_y; i += step_y) {
-                this.gridContainer.moveTo(0, i);
-                this.gridContainer.lineTo(size_x, i);
+            for (let i = -1000; i <= 1000; i += grid.minor_step.y) {
+                this.gridGraphics.moveTo(-10000, i);
+                this.gridGraphics.lineTo(10000, i);
             }
+
+            // Draw major grid lines
+            this.gridGraphics.lineStyle(2, 0x5C5C8E);
+            for (let i = 0; i <= grid.size.x; i += grid.major_step.x) {
+                this.gridGraphics.moveTo(i, 0);
+                this.gridGraphics.drawDashLine(i, grid.size.y, 5, 10);
+            }
+            for (let i = 0; i <= grid.size.y; i += grid.major_step.y) {
+                this.gridGraphics.moveTo(0, i);
+                this.gridGraphics.drawDashLine(grid.size.x, i, 10, 10);
+            }
+
+            // const texture = this.gridGraphics.generateCanvasTexture(PIXI.SCALE_MODES.LINEAR);
+            // const sprite = new PIXI.Sprite();
+            // sprite.texture = texture;
+            // this.gridContainer.addChild(sprite);
         }
     }
 

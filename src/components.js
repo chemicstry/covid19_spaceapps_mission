@@ -43,8 +43,9 @@ export class Rendered extends SystemStateComponent {
 
 // Game grid
 export class Grid {
-    constructor(divisions, size) {
-        this.divisions = divisions;
+    constructor(major_step, minor_step, size) {
+        this.major_step = major_step;
+        this.minor_step = minor_step;
         this.size = size;
     }
 }
