@@ -20,5 +20,8 @@
   "homepage": "https://github.com/chemicstry/covid19_spaceapps_mission#readme",
   "devDependencies": {
     "parcel-bundler": "^1.12.4"
+  },
+  "dependencies": {
+    "ecsy": "^0.2.4"
   }
 }
