@@ -1,0 +1,73 @@
+@font-face {
+    font-family: TitilliumWebBold;
+    src: url('../assets/TitilliumWeb-Bold.ttf');
+}
+
+body {
+    margin: 0px;
+    background-color: #1A1A60;
+    font-family: TitilliumWebBold;
+    color: #33E2E2;
+}
+
+#container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+}
+
+#game {
+    position: absolute;
+    z-index: -1;
+}
+
+#ui {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.logo {
+    width: 400px;
+    margin: 30px auto;
+}
+
+.top_ui {
+    padding: 50px;
+}
+
+.selected_panel {
+    border: 3px solid #225A95;
+    background-color: #2780B5;
+    width: 200px;
+    height: 80px;
+}
+
+.bottom_ui {
+    position: absolute;
+    width: 100%;
+    bottom: 0;
+}
+
+.bottom_left_text {
+    margin-left: 50px;
+    padding: 10px;
+}
+
+.progress_outer {
+    border: 1px solid #2EBAC8;
+    padding: 2px;
+    margin-left: 50px;
+    margin-right: 50px;
+    margin-bottom: 30px;
+}
+
+.progress_inner {
+    border: 1px solid #2EBAC8;
+}
+
+.progress_bar {
+    background-color: #2EBAC8;
+    height: 20px;
+    width: 90%;
+}

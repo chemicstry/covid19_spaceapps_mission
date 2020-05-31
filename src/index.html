@@ -1,12 +1,26 @@
 <html>
-  <style>
-    body {
-      margin: 0px;
-      background-color: #1A1A60;
-    }
-  </style>
+  <head>
+    <title>Oversight</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
   <body>
-    <canvas id="game"></canvas>
+    <div id="container">
+      <canvas id="game"></canvas>
+      <div id="ui">
+        <div class="logo"><img src="../assets/logo.png" width="400px" alt="logo" /></div>
+        <div class="top_ui">
+          <div class="selected_panel"></div>
+        </div>
+        <div class="bottom_ui">
+          <div class="bottom_left_text">Vaccine progress</div>
+          <div class="progress_outer">
+            <div class="progress_inner">
+              <div class="progress_bar"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <script src="./index.js"></script>
   </body>
 </html>

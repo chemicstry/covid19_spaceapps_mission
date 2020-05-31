@@ -52,11 +52,11 @@ export class Renderer extends System {
             view: document.getElementById('game'),
             backgroundColor: 0x1A1A60,
             antialias: true,
-            autoResize: true,
             width: this.defaultWidth,
             height: this.defaultHeight,
         });
-        document.body.appendChild(this.pixiApp.view);
+
+        this.ui_container = document.getElementById('ui');
 
         // Create isometric rendering by setting y scale to 0.5
         this.isoScalingContainer = new PIXI.Container();
@@ -92,7 +92,7 @@ export class Renderer extends System {
         this.pixiApp.renderer.resize(parent.clientWidth, parent.clientHeight);
 
         // Rescale from default 800x600 resolution
-        let scale = Math.min(parent.clientWidth / this.defaultWidth, parent.clientHeight / this.defaultHeight );
+        let scale = Math.min(parent.clientWidth / this.defaultWidth, parent.clientHeight / this.defaultHeight);
         this.pixiApp.stage.scale.set(scale);
 
         // Recenter
@@ -102,6 +102,10 @@ export class Renderer extends System {
         let offsetHeight = (parent.clientHeight - gameHeight) / 2;
         this.pixiApp.stage.position.x = offsetWidth;
         this.pixiApp.stage.position.y = offsetHeight;
+
+        // Adjust UI
+        this.ui_container.style.width = this.defaultWidth * scale;
+        this.ui_container.style.height = this.defaultHeight * scale;
     }
 
     updateGrid(grid) {
