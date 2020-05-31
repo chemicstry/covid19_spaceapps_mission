@@ -5,9 +5,10 @@ import * as PIXI from 'pixi.js';
 import Victor from 'victor';
 import { BuildingRegistry, BuildingDefinition } from './buildings.js';
 import { PathMovementSystem, DestinationMovementSystem, Position, PFDestination } from './movement.js';
-import { Human, HumanSpriteRendering, Schedule, Event, HumanScheduler } from './humans.js';
+import { Human, HumanSpriteRendering, Schedule, Event, HumanScheduler, ScheduleDisplay } from './humans.js';
 import { randomInt } from './utils.js';
 import { Time, TimeSystem } from './time.js';
+import { Selected } from './interraction.js';
 const random = require('random');
 
 function generateBuildings(world, singleton) {
@@ -77,6 +78,7 @@ function generateBuildings(world, singleton) {
 
 function createHuman(world, singleton) {
     let buildingRegistry = singleton.getComponent(BuildingRegistry);
+    let selected = singleton.getComponent(Selected);
     let schedule = new Schedule();
     schedule.repeat = 24 * 60 * 60 * 1000; // repeat every 24 hours
     let home = buildingRegistry.getByType(BuildingDefinition.Type.HOME).allocatePosition();
@@ -111,12 +113,37 @@ function createHuman(world, singleton) {
     ));
 
     let graphics = new PIXI.Graphics();
-    graphics.zIndex = -1;
-    world.createEntity()
+
+    let entity = world.createEntity()
         .addComponent(Renderable, new Renderable(graphics))
         .addComponent(Position, home)
         .addComponent(Schedule, schedule)
         .addComponent(Human);
+
+    graphics.scale.set(1.0, 1.0/0.6); // Fix isometry 
+    graphics.rotation = -Math.PI / 4;
+    graphics.interactive = true;
+    graphics.buttonMode = true; // show cursor
+    graphics.on("pointerover", () => {
+        graphics.zIndex = 1;
+        graphics.scale.set(1.5, 1.5/0.6);
+    });
+    graphics.on("pointerout", () => {
+        graphics.zIndex = -1;
+        graphics.scale.set(1.0, 1.0/0.6);
+    });
+    graphics.on("click", (ev) => {
+        ev.stopPropagation();
+        selected.set(entity);
+    });
+    graphics.hitArea = new PIXI.Polygon([
+        0, 10,
+        -14, 0,
+        0, -10,
+        14, 0,
+    ]);
+    graphics.zIndex = -1;
+    
 }
 
 function start_game() {
@@ -129,6 +156,7 @@ function start_game() {
         .registerSystem(PathMovementSystem)
         .registerSystem(PositionUpdateSystem)
         .registerSystem(HumanSpriteRendering)
+        .registerSystem(ScheduleDisplay)
         .registerSystem(Renderer);
 
     let grid = new Grid(new Victor(140, 140), new Victor(20, 20), new Victor(700, 700));
@@ -140,7 +168,8 @@ function start_game() {
         .addComponent(Time)
         .addComponent(Grid, grid)
         .addComponent(WalkableGrid, walkableGrid)
-        .addComponent(BuildingRegistry, buildingRegistry);
+        .addComponent(BuildingRegistry, buildingRegistry)
+        .addComponent(Selected);
     
     // let graphics = new PIXI.Graphics();
     // graphics.lineStyle(6, 0x33DDAC);
@@ -164,7 +193,7 @@ function start_game() {
 
     generateBuildings(world, singleton);
 
-    for (let i = 0; i < 20; ++i) {
+    for (let i = 0; i < 27; ++i) {
         createHuman(world, singleton);
     }
 

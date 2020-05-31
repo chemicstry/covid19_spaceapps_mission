@@ -23,6 +23,20 @@ export class BuildingDefinition {
         sprite.rotation = -Math.PI / 4; // Fix isometry
         sprite.scale.set(scale, scale*isometry_fix); 
         sprite.anchor.set(0.5, 1.0);
+        // Human interactivity does not work under buildings
+        // sprite.interactive = true;
+        // sprite.on("pointerover", () => {
+        //     sprite.alpha = 0.2;
+        // });
+        // sprite.on("pointerout", () => {
+        //     sprite.alpha = 1.0;
+        // });
+        // sprite.hitArea = new PIXI.Polygon([
+        //     0, 0,
+        //     -140, -100,
+        //     0, -200,
+        //     140, -100,
+        // ]);
         return sprite;
     }
 

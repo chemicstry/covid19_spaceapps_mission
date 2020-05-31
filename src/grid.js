@@ -86,6 +86,7 @@ export class WalkableGrid {
         this.easystar.setGrid(this.gridArray);
         this.easystar.enableDiagonals();
         this.easystar.setTileCost(WalkableGrid.TileType.BUILDING, 10.0);
+        this.easystar.setTileCost(WalkableGrid.TileType.SIDEWALK, 2.0);
         this.easystar.setAcceptableTiles([
             WalkableGrid.TileType.BUILDING,
             WalkableGrid.TileType.SIDEWALK,

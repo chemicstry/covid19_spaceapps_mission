@@ -20,7 +20,7 @@ export class Time {
 }
 
 export class TimeSystem extends System {
-    static TIME_SPEED = 1000.0;
+    static TIME_SPEED = 600.0;
 
     execute(dt) {
         let singleton = this.queries.context.results[0];

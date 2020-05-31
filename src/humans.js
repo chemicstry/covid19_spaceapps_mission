@@ -2,12 +2,12 @@ import { System, Not, TagComponent } from "ecsy";
 import { Destination, Position, PFDestination, MovementPath } from "./movement";
 import { Renderable } from "./rendering";
 import { Time } from "./time";
+import { Selected } from "./interraction";
+import { WalkableGrid, Grid } from "./grid";
+import * as PIXI from 'pixi.js';
+import { Infected, Tested } from "./infection";
 
 export class Human extends TagComponent {}
-
-export class Infected extends TagComponent {}
-
-export class Tested extends TagComponent {}
 
 export class Event {
     static Type = {
@@ -60,8 +60,6 @@ export class HumanScheduler extends System {
             let schedule = e.getComponent(Schedule);
             let event = schedule.getEvent(time.value);
             if (event) {
-                console.log(event);
-                console.log(time.getHours());
                 e.addComponent(PFDestination, event.data.clone());
             }
         })
@@ -84,8 +82,6 @@ export class HumanSpriteRendering extends System {
     execute() {
         this.queries.enlarged.results.forEach(e => {
             let graphics = e.getComponent(Renderable).display_object;
-            graphics.scale.set(1.0, 1.0/0.6); // Fix isometry 
-            graphics.rotation = -Math.PI / 4;
             graphics.clear();
             graphics.lineStyle(4, HumanSpriteRendering.getColor(e));
             graphics.drawCircle(0, 0, 5);
@@ -94,8 +90,6 @@ export class HumanSpriteRendering extends System {
 
         this.queries.small.results.forEach(e => {
             let graphics = e.getComponent(Renderable).display_object;
-            graphics.scale.set(1.0, 1.0/0.6); // Fix isometry 
-            graphics.rotation = -Math.PI / 4;
             graphics.clear();
             graphics.beginFill(HumanSpriteRendering.getColor(e));
             graphics.drawCircle(0, 0, 4);
@@ -107,4 +101,78 @@ export class HumanSpriteRendering extends System {
 HumanSpriteRendering.queries = {
     enlarged: { components: [Renderable, Human, Destination] },
     small: { components: [Renderable, Human, Not(Destination), Not(MovementPath)] }
+};
+
+export class ScheduleDisplay extends System {
+    constructor(world, attributes) {
+        super(world, attributes);
+        this.entity = world.createEntity();
+    }
+
+    execute() {
+        let context = this.queries.context.results[0];
+        let selected = context.getComponent(Selected).get();
+        let grid = context.getComponent(WalkableGrid);
+        if (selected != this.selected_entity) {
+            if (this.entity.hasComponent(Renderable)) {
+                this.entity.removeComponent(Renderable);
+            }
+
+            this.selected_entity = selected;
+
+            if (!selected)
+                return;
+
+            let schedule = selected.getComponent(Schedule);
+            if (schedule.events.length < 2)
+                return;
+
+            let points = [];
+            for (var i = 1; i < schedule.events.length; ++i)
+                points.push([
+                    schedule.events[i-1].data, // Start position
+                    schedule.events[i].data // end position
+                ]);
+
+            // wrap around
+            points.push([
+                schedule.events[i-1].data, // Start position
+                schedule.events[0].data // end position
+            ]);
+
+            let renderPaths = (paths) => {
+                let graphics = new PIXI.Graphics();
+                graphics.lineStyle(4, 0x33DDAC);
+                graphics.zIndex = -1;
+                for (const path of paths) {
+                    for (let i = 0; i < path.length; ++i) {
+                        if (i == 0)
+                            graphics.moveTo(path[i].x, path[i].y);
+                        else
+                            graphics.lineTo(path[i].x, path[i].y);
+                    }
+                }
+
+                this.entity.addComponent(Renderable, new Renderable(graphics));
+            }
+
+            let genPaths = (points, paths) => {
+                if (!points.length) {
+                    renderPaths(paths);
+                } else {
+                    let next = points.pop();
+                    grid.getPath(next[0], next[1], (path) => {
+                        paths.push(path);
+                        genPaths(points, paths);
+                    })
+                }
+            }
+
+            genPaths(points, []);
+        }
+    }
+}
+
+ScheduleDisplay.queries = {
+    context: { components: [Selected, WalkableGrid], mandatory: true },
 };

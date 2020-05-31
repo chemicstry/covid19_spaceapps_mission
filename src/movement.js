@@ -75,7 +75,7 @@ export class DestinationMovementSystem extends System {
                 e.removeComponent(Destination);
             } else {
                 let dir = dest.clone().subtract(pos).norm();
-                let speed = new Victor(dt * 0.1, dt * 0.1);
+                let speed = new Victor(dt * 0.05, dt * 0.05);
                 pos.add(dir.multiply(speed));
             }
         })

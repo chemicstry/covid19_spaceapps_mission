@@ -2,6 +2,7 @@ import { System, Not, SystemStateComponent } from "ecsy";
 import { Grid } from "./grid.js";
 import * as PIXI from 'pixi.js';
 import { Position } from "./movement.js";
+import { Selected } from "./interraction.js";
 
 // Renderable component where display_object is PIXI.js DisplayObject
 export class Renderable {
@@ -67,6 +68,10 @@ export class Renderer extends System {
         this.worldContainer = new PIXI.Container();
         this.worldContainer.sortableChildren = true;
         this.worldContainer.rotation = Math.PI / 4;
+        this.worldContainer.interactive = true; // Only works on rendered area :(
+        this.worldContainer.on('click', () => {
+            this.bg_clicked = true;
+        });
         this.isoScalingContainer.addChild(this.worldContainer);
 
         const basicText = new PIXI.Text('Space Society Twente');
@@ -153,6 +158,11 @@ export class Renderer extends System {
     execute() {
         let ctx = this.queries.context.results[0];
         this.updateGrid(ctx.getComponent(Grid));
+
+        if (this.bg_clicked) {
+            ctx.getComponent(Selected).unset();
+            this.bg_clicked = false;
+        }
         
         // Process newly added `Renderable` components
         this.queries.added.results.forEach(e => {
@@ -175,5 +185,5 @@ export class Renderer extends System {
 Renderer.queries = {
     added: { components: [Renderable, Not(Rendered)] },
     removed: { components: [Not(Renderable), Rendered] },
-    context: { components: [Grid], mandatory: true }
+    context: { components: [Grid, Selected], mandatory: true }
 };
