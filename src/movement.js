@@ -1,5 +1,6 @@
 import { System, Not } from "ecsy";
 import Victor from "victor";
+import { WalkableGrid } from "./grid";
 
 export class Position extends Victor {}
 
@@ -15,12 +16,17 @@ export class MovementPath {
     }
 }
 
-// Destination where entity should move
+// Destination where entity should move (in a straight line)
 export class Destination extends Victor {}
+
+// Pathfinding destination (avoids obstacles)
+export class PFDestination extends Victor {}
 
 export class PathMovementSystem extends System {
     execute() {
-        this.queries.entities.results.forEach(e => {
+        let ctx = this.queries.context.results[0];
+
+        this.queries.process_path.results.forEach(e => {
             let path = e.getComponent(MovementPath);
             
             if (path.index < path.path.length) {
@@ -32,12 +38,28 @@ export class PathMovementSystem extends System {
                 e.removeComponent(MovementPath);
             }
         })
+
+        // Generate paths
+        this.queries.gen_path.results.forEach(e => {
+            let walkableGrid = ctx.getComponent(WalkableGrid);
+            let src = e.getComponent(Position);
+            let dst = e.getComponent(PFDestination);
+            walkableGrid.getPath(src, dst, (path) => {
+                if (!path)
+                    return console.log("Failed to generate path");
+                
+                e.addComponent(MovementPath, new MovementPath(path));
+            });
+            e.removeComponent(PFDestination); // Do not generate again
+        })
     }
 }
 
 PathMovementSystem.queries = {
     // Find entities that have a path, but no destination yet
-    entities: { components: [MovementPath, Not(Destination)] },
+    process_path: { components: [MovementPath, Not(Destination)] },
+    gen_path: { components: [Position, PFDestination]},
+    context: { components: [WalkableGrid], mandatory: true }
 };
 
 export class DestinationMovementSystem extends System {

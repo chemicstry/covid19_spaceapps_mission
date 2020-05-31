@@ -4,7 +4,7 @@ import {Renderer, PositionUpdateSystem, Renderable} from './rendering.js';
 import * as PIXI from 'pixi.js';
 import Victor from 'victor';
 import { BuildingRegistry } from './buildings.js';
-import { PathMovementSystem, DestinationMovementSystem, Position, MovementPath } from './movement.js';
+import { PathMovementSystem, DestinationMovementSystem, Position, MovementPath, PFDestination } from './movement.js';
 import { HumanSpriteAutosize, Human, HumanSpriteRendering } from './humans.js';
 
 function generateBuildings(world, singleton) {
@@ -61,10 +61,8 @@ function start_game() {
     let circle = world.createEntity()
         .addComponent(Renderable, new Renderable(graphics))
         .addComponent(Position, new Position(0,0))
+        .addComponent(PFDestination, new Victor(11, 11))
         .addComponent(Human);
-    walkableGrid.getPath(new Victor(1, 1), new Victor(11, 11), (path) => {
-        circle.addComponent(MovementPath, new MovementPath(path));
-    });
 
     let g2 = new PIXI.Graphics();
     g2.lineStyle(6, 0xE52E74);
@@ -73,10 +71,8 @@ function start_game() {
     let c2 = world.createEntity()
         .addComponent(Renderable, new Renderable(g2))
         .addComponent(Position, new Position(0,0))
+        .addComponent(PFDestination, new Victor(11, 11))
         .addComponent(Human);
-    walkableGrid.getPath(new Victor(1, 1), new Victor(23, 30), (path) => {
-        c2.addComponent(MovementPath, new MovementPath(path));
-    });
 
     generateBuildings(world, singleton);
 

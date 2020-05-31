@@ -2,7 +2,8 @@ import * as PIXI from 'pixi.js';
 import { random, randomInt } from './utils';
 
 export class Building {
-    constructor(texture) {
+    constructor(type, texture) {
+        this.type = type;
         this.texture = texture;
     }
 
@@ -18,12 +19,31 @@ export class Building {
 }
 
 export class BuildingRegistry {
+    static BuildingType = {
+        HOME: 1,
+        HOSPITAL: 2,
+        OFFICE: 3,
+        SHOP: 4,
+    }
+
     constructor() {
         this.buildings = [
-            new Building(PIXI.Texture.from(require('assets/home.png'))),
-            new Building(PIXI.Texture.from(require('assets/hospital.png'))),
-            new Building(PIXI.Texture.from(require('assets/office.png'))),
-            new Building(PIXI.Texture.from(require('assets/shop.png')))
+            new Building(
+                BuildingRegistry.BuildingType.HOME,
+                PIXI.Texture.from(require('assets/home.png'))
+            ),
+            new Building(
+                BuildingRegistry.BuildingType.HOSPITAL,
+                PIXI.Texture.from(require('assets/hospital.png'))
+            ),
+            new Building(
+                BuildingRegistry.BuildingType.OFFICE,
+                PIXI.Texture.from(require('assets/office.png'))
+            ),
+            new Building(
+                BuildingRegistry.BuildingType.SHOP,
+                PIXI.Texture.from(require('assets/shop.png'))
+            )
         ];
     }
 
