@@ -22,8 +22,13 @@
     "parcel-bundler": "^1.12.4"
   },
   "dependencies": {
+    "assets": "^3.0.1",
+    "easystarjs": "^0.4.3",
     "ecsy": "^0.2.4",
     "pixi.js": "^5.2.4",
     "victor": "^1.1.0"
+  },
+  "alias": {
+    "assets": "./assets"
   }
 }

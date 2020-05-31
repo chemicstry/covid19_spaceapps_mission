@@ -1,55 +1,30 @@
-import { System, Not } from "ecsy";
-import {
-    Grid, Renderable, Rendered, Position, Destination, MovementPath
-} from "./components.js";
+import { System, Not, SystemStateComponent } from "ecsy";
+import { Grid } from "./grid.js";
 import * as PIXI from 'pixi.js';
-import Victor from "victor";
-import * as utils from "./utils.js";
+import { Position } from "./movement.js";
 
-export class PathMovementSystem extends System {
-    execute() {
-        this.queries.entities.results.forEach(e => {
-            let path = e.getComponent(MovementPath);
-            
-            if (path.index < path.path.length) {
-                // Set next destination
-                e.addComponent(Destination, path.path[path.index])
-                path.index += 1;
-            } else {
-                // Path finished
-                e.removeComponent(MovementPath);
-            }
-        })
+// Renderable component where display_object is PIXI.js DisplayObject
+export class Renderable {
+    constructor(display_object) {
+        this.display_object = display_object;
+    }
+
+    reset() {
+        this.display_object = null;
     }
 }
 
-PathMovementSystem.queries = {
-    // Find entities that have a path, but no destination yet
-    entities: { components: [MovementPath, Not(Destination)] },
-};
+// Marker component, that this entity was already added to the scene
+export class Rendered extends SystemStateComponent {
+    constructor(display_object) {
+        super();
+        this.display_object = display_object
+    }
 
-export class DestinationMovementSystem extends System {
-    execute(dt) {
-        this.queries.entities.results.forEach(e => {
-            let pos = e.getComponent(Position);
-            let dest = e.getComponent(Destination);
-            
-            // Must be more complicated (implement path finding?)
-            if (dest.distanceSq(pos) < 1.0) {
-                pos.copy(dest);
-                e.removeComponent(Destination);
-            } else {
-                let dir = dest.clone().subtract(pos).norm();
-                let speed = new Victor(dt * 0.1, dt * 0.1);
-                pos.add(dir.multiply(speed));
-            }
-        })
+    reset() {
+        this.display_object = null;
     }
 }
-
-DestinationMovementSystem.queries = {
-    entities: { components: [Position, Destination] },
-};
 
 // Updates PIXI.js object positions from Position component
 export class PositionUpdateSystem extends System {
@@ -69,18 +44,23 @@ export class Renderer extends System {
     constructor(world, attributes) {
         super(world, attributes);
 
+        this.defaultWidth = 1024;
+        this.defaultHeight = 760;
+
         this.pixiApp = new PIXI.Application({
             view: document.getElementById('game'),
             backgroundColor: 0x1A1A60,
             antialias: true,
             autoResize: true,
+            width: this.defaultWidth,
+            height: this.defaultHeight,
         });
         document.body.appendChild(this.pixiApp.view);
 
         // Create isometric rendering by setting y scale to 0.5
         this.isoScalingContainer = new PIXI.Container();
         this.isoScalingContainer.scale.y = 0.5;
-        this.isoScalingContainer.position.set(this.pixiApp.screen.width / 2, this.pixiApp.screen.height / 2);
+        this.isoScalingContainer.position.set(this.pixiApp.screen.width / 2, this.pixiApp.screen.height / 2 - 50);
         this.pixiApp.stage.addChild(this.isoScalingContainer);
 
         // Rotate world container by 45 degrees
@@ -93,20 +73,17 @@ export class Renderer extends System {
     }
 
     on_resize() {
-        let defaultWidth = 800;
-        let defaultHeight = 600;
-
         // Resize renderer
         const parent = this.pixiApp.view.parentNode;
         this.pixiApp.renderer.resize(parent.clientWidth, parent.clientHeight);
 
         // Rescale from default 800x600 resolution
-        let scale = Math.min(parent.clientWidth / defaultWidth, parent.clientHeight / defaultHeight);
+        let scale = Math.min(parent.clientWidth / this.defaultWidth, parent.clientHeight / this.defaultHeight );
         this.pixiApp.stage.scale.set(scale);
 
         // Recenter
-        let gameWidth = defaultWidth * scale;
-        let gameHeight = defaultHeight * scale;
+        let gameWidth = this.defaultWidth * scale;
+        let gameHeight = this.defaultHeight  * scale;
         let offsetWidth = (parent.clientWidth - gameWidth) / 2;
         let offsetHeight = (parent.clientHeight - gameHeight) / 2;
         this.pixiApp.stage.position.x = offsetWidth;
@@ -130,11 +107,11 @@ export class Renderer extends System {
 
             // Draw minor grid lines
             this.gridGraphics.lineStyle(1, 0x5C5C8E, 0.4);
-            for (let i = -1000; i <= 1000; i += grid.minor_step.x) {
+            for (let i = -1000; i <= 2000; i += grid.minor_step.x) {
                 this.gridGraphics.moveTo(i, -10000);
                 this.gridGraphics.lineTo(i, 10000);
             }
-            for (let i = -1000; i <= 1000; i += grid.minor_step.y) {
+            for (let i = -1000; i <= 2000; i += grid.minor_step.y) {
                 this.gridGraphics.moveTo(-10000, i);
                 this.gridGraphics.lineTo(10000, i);
             }
@@ -143,7 +120,7 @@ export class Renderer extends System {
             this.gridGraphics.lineStyle(2, 0x5C5C8E);
             for (let i = 0; i <= grid.size.x; i += grid.major_step.x) {
                 this.gridGraphics.moveTo(i, 0);
-                this.gridGraphics.drawDashLine(i, grid.size.y, 5, 10);
+                this.gridGraphics.drawDashLine(i, grid.size.y, 10, 10);
             }
             for (let i = 0; i <= grid.size.y; i += grid.major_step.y) {
                 this.gridGraphics.moveTo(0, i);

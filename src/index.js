@@ -1,21 +1,48 @@
 import {World, System} from 'ecsy';
-import {Grid, Renderable, Position, Destination, MovementPath} from './components.js';
-import {Renderer, HumanMovementSystem, PositionUpdateSystem, DestinationMovementSystem, PathMovementSystem} from './systems.js';
+import {Grid, WalkableGrid} from './grid.js';
+import {Renderer, PositionUpdateSystem, Renderable} from './rendering.js';
 import * as PIXI from 'pixi.js';
 import Victor from 'victor';
+import { BuildingRegistry } from './buildings.js';
+import { PathMovementSystem, DestinationMovementSystem, Position, MovementPath } from './movement.js';
+import { HumanSpriteAutosize, Human, HumanSpriteRendering } from './humans.js';
+
+function generateBuildings(world, singleton) {
+    var grid = singleton.getComponent(Grid);
+    var buildingRegistry = singleton.getComponent(BuildingRegistry);
+    var size = grid.size.clone().divide(grid.major_step);
+
+    for (let x = 0; x < size.x; ++x) {
+        for (let y = 0; y < size.y; ++y) {
+            let sprite = buildingRegistry.getRandom().createSprite();
+            let pos = grid.fromMajor(new Victor(x, y));
+            pos = pos.add(new Victor(5*grid.minor_step.x, 5*grid.minor_step.y));
+            world.createEntity()
+                .addComponent(Renderable, new Renderable(sprite))
+                .addComponent(Position, pos);
+        }
+    }
+}
 
 function start_game() {
     var world = new World();
 
     world
-        .registerSystem(PathMovementSystem)
         .registerSystem(DestinationMovementSystem)
+        .registerSystem(PathMovementSystem)
         .registerSystem(PositionUpdateSystem)
+        .registerSystem(HumanSpriteRendering)
         .registerSystem(Renderer);
 
+    let grid = new Grid(new Victor(140, 140), new Victor(20, 20), new Victor(700, 700));
+    let walkableGrid = new WalkableGrid(grid);
+    let buildingRegistry = new BuildingRegistry();
+
     // Singleton component (resources)
-    world.createEntity()
-        .addComponent(Grid, new Grid(new Victor(100, 100), new Victor(20, 20), new Victor(500, 500)));
+    let singleton = world.createEntity()
+        .addComponent(Grid, grid)
+        .addComponent(WalkableGrid, walkableGrid)
+        .addComponent(BuildingRegistry, buildingRegistry);
     
     const basicText = new PIXI.Text('Space Society Twente');
     basicText.x = 0;
@@ -23,10 +50,35 @@ function start_game() {
     basicText.style = new PIXI.TextStyle({
         fill: ['#ffffff', '#00ff99']
     });
-    world.createEntity()
+    let text = world.createEntity()
         .addComponent(Renderable, new Renderable(basicText))
+        .addComponent(Position, new Position(0,0));
+    
+    let graphics = new PIXI.Graphics();
+    graphics.lineStyle(6, 0x33DDAC);
+    graphics.drawCircle(0, 0, 7);
+    graphics.endFill();
+    let circle = world.createEntity()
+        .addComponent(Renderable, new Renderable(graphics))
         .addComponent(Position, new Position(0,0))
-        .addComponent(MovementPath, new MovementPath([new Victor(100, 0), new Victor(100, 50), new Victor(0, 50)]));
+        .addComponent(Human);
+    walkableGrid.getPath(new Victor(1, 1), new Victor(11, 11), (path) => {
+        circle.addComponent(MovementPath, new MovementPath(path));
+    });
+
+    let g2 = new PIXI.Graphics();
+    g2.lineStyle(6, 0xE52E74);
+    g2.drawCircle(0, 0, 7);
+    g2.endFill();
+    let c2 = world.createEntity()
+        .addComponent(Renderable, new Renderable(g2))
+        .addComponent(Position, new Position(0,0))
+        .addComponent(Human);
+    walkableGrid.getPath(new Victor(1, 1), new Victor(23, 30), (path) => {
+        c2.addComponent(MovementPath, new MovementPath(path));
+    });
+
+    generateBuildings(world, singleton);
 
     var lastTime = performance.now();
     function update() {
