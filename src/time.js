@@ -3,7 +3,7 @@ import { System } from "ecsy";
 export class Time {
     constructor() {
         // Time in milliseconds
-        this.value = 5*60*60*1000;
+        this.value = 2*60*60*1000;
     }
 
     getMinutes() {

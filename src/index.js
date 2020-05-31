@@ -5,10 +5,11 @@ import * as PIXI from 'pixi.js';
 import Victor from 'victor';
 import { BuildingRegistry, BuildingDefinition } from './buildings.js';
 import { PathMovementSystem, DestinationMovementSystem, Position, PFDestination } from './movement.js';
-import { Human, HumanSpriteRendering, Schedule, Event, HumanScheduler, ScheduleDisplay } from './humans.js';
+import { Human, HumanSpriteRendering, Schedule, Event, HumanScheduler, ScheduleDisplay, Infected } from './humans.js';
 import { randomInt } from './utils.js';
 import { Time, TimeSystem } from './time.js';
 import { Selected } from './interraction.js';
+import { InfectionSpreadSystem } from './infection.js';
 const random = require('random');
 
 function generateBuildings(world, singleton) {
@@ -76,7 +77,7 @@ function generateBuildings(world, singleton) {
         building.shufflePositions();
 }
 
-function createHuman(world, singleton) {
+function createHuman(world, singleton, infected) {
     let buildingRegistry = singleton.getComponent(BuildingRegistry);
     let selected = singleton.getComponent(Selected);
     let schedule = new Schedule();
@@ -119,6 +120,9 @@ function createHuman(world, singleton) {
         .addComponent(Position, home)
         .addComponent(Schedule, schedule)
         .addComponent(Human);
+    
+    if (infected)
+        entity.addComponent(Infected, new Infected(0));
 
     graphics.scale.set(1.0, 1.0/0.6); // Fix isometry 
     graphics.rotation = -Math.PI / 4;
@@ -154,6 +158,7 @@ function start_game() {
         .registerSystem(HumanScheduler)
         .registerSystem(DestinationMovementSystem)
         .registerSystem(PathMovementSystem)
+        .registerSystem(InfectionSpreadSystem)
         .registerSystem(PositionUpdateSystem)
         .registerSystem(HumanSpriteRendering)
         .registerSystem(ScheduleDisplay)
@@ -193,16 +198,25 @@ function start_game() {
 
     generateBuildings(world, singleton);
 
+    const infectedCount = 3;
     for (let i = 0; i < 27; ++i) {
-        createHuman(world, singleton);
+        createHuman(world, singleton, i < infectedCount);
     }
 
+    const maxDelta = 500;
     var lastTime = performance.now();
     function update() {
         var time = performance.now();
         var delta = time - lastTime;
         lastTime = time;
-        world.execute(delta);
+
+        // Cap delta and allow game to catch up when window was inactive for some time
+        while(delta > 0) {
+            let cappedDelta = Math.min(delta, maxDelta);
+            world.execute(cappedDelta);
+            delta -= cappedDelta;
+        }
+        
         requestAnimationFrame(update);
     }
 

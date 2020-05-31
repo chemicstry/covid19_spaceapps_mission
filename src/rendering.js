@@ -45,8 +45,8 @@ export class Renderer extends System {
     constructor(world, attributes) {
         super(world, attributes);
 
-        this.defaultWidth = 1024;
-        this.defaultHeight = 768;
+        this.defaultWidth = 1200;
+        this.defaultHeight = 800;
 
         this.pixiApp = new PIXI.Application({
             view: document.getElementById('game'),
@@ -61,7 +61,7 @@ export class Renderer extends System {
         // Create isometric rendering by setting y scale to 0.5
         this.isoScalingContainer = new PIXI.Container();
         this.isoScalingContainer.scale.y = 0.6;
-        this.isoScalingContainer.position.set(this.pixiApp.screen.width / 2, this.pixiApp.screen.height / 2 - 50);
+        this.isoScalingContainer.position.set(this.pixiApp.screen.width / 2, this.pixiApp.screen.height / 2 - 70);
         this.pixiApp.stage.addChild(this.isoScalingContainer);
 
         // Rotate world container by 45 degrees
@@ -74,13 +74,13 @@ export class Renderer extends System {
         });
         this.isoScalingContainer.addChild(this.worldContainer);
 
-        const basicText = new PIXI.Text('Space Society Twente');
-        basicText.x = 0;
-        basicText.y = 0;
-        basicText.style = new PIXI.TextStyle({
-            fill: ['#ffffff', '#00ff99']
-        });
-        this.pixiApp.stage.addChild(basicText);
+        // const basicText = new PIXI.Text('Space Society Twente');
+        // basicText.x = 0;
+        // basicText.y = 0;
+        // basicText.style = new PIXI.TextStyle({
+        //     fill: ['#ffffff', '#00ff99']
+        // });
+        // this.pixiApp.stage.addChild(basicText);
 
         window.addEventListener('resize', () => this.on_resize());
         this.on_resize();

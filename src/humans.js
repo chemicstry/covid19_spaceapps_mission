@@ -5,7 +5,14 @@ import { Time } from "./time";
 import { Selected } from "./interraction";
 import { WalkableGrid, Grid } from "./grid";
 import * as PIXI from 'pixi.js';
-import { Infected, Tested } from "./infection";
+
+export class Infected {
+    constructor(time) {
+        this.time = time;
+    }
+}
+
+export class Tested extends TagComponent {}
 
 export class Human extends TagComponent {}
 
@@ -73,7 +80,7 @@ HumanScheduler.queries = {
 
 export class HumanSpriteRendering extends System {
     static getColor(e) {
-        if (e.getComponent(Infected) && e.getComponent(Tested))
+        if (e.getComponent(Infected) /*&& e.getComponent(Tested)*/)
             return 0xE52E74;
         else
             return 0x33DDAC;
@@ -123,9 +130,11 @@ export class ScheduleDisplay extends System {
             if (!selected)
                 return;
 
-            let schedule = selected.getComponent(Schedule);
+            const schedule = selected.getComponent(Schedule);
             if (schedule.events.length < 2)
                 return;
+            
+            const color = HumanSpriteRendering.getColor(selected);
 
             let points = [];
             for (var i = 1; i < schedule.events.length; ++i)
@@ -142,13 +151,16 @@ export class ScheduleDisplay extends System {
 
             let renderPaths = (paths) => {
                 let graphics = new PIXI.Graphics();
-                graphics.lineStyle(4, 0x33DDAC);
+                graphics.lineStyle(4, color);
                 graphics.zIndex = -1;
                 for (const path of paths) {
                     for (let i = 0; i < path.length; ++i) {
-                        if (i == 0)
+                        if (i == 0) {
+                            graphics.beginFill(color);
+                            graphics.drawCircle(path[i].x, path[i].y, 4);
+                            graphics.endFill();
                             graphics.moveTo(path[i].x, path[i].y);
-                        else
+                        } else
                             graphics.lineTo(path[i].x, path[i].y);
                     }
                 }
