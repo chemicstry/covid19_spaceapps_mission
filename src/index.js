@@ -87,7 +87,7 @@ function createHuman(world, singleton) {
     let time_start_work = random.normal(7*60*60*1000, 2*60*60*1000)();
     let time_end_work = random.normal(17*60*60*1000, 2*60*60*1000)();
     let time_shop = time_end_work + random.normal(2*60*60*1000, 1*60*60*1000)();
-    let time_home = time_shop + Math.max(random.normal(0.5*60*60*1000, 0.2*60*60*1000)(), 0.1*60*60*1000);
+    let time_home = time_shop + Math.max(random.normal(0.5*60*60*1000, 0.2*60*60*1000)(), 0.3*60*60*1000);
 
     schedule.events.push(new Event(
         Event.Type.GO_WORK,

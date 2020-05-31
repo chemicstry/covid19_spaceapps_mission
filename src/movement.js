@@ -48,6 +48,7 @@ export class PathMovementSystem extends System {
                 if (!path)
                     return console.log("Failed to generate path");
                 
+                e.removeComponent(MovementPath);
                 e.addComponent(MovementPath, new MovementPath(path));
             });
             e.removeComponent(PFDestination); // Do not generate again

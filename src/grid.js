@@ -90,6 +90,7 @@ export class WalkableGrid {
             WalkableGrid.TileType.BUILDING,
             WalkableGrid.TileType.SIDEWALK,
             WalkableGrid.TileType.CROSSING,
+            WalkableGrid.TileType.STREET,
         ]);
     }
 

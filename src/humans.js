@@ -1,5 +1,5 @@
 import { System, Not, TagComponent } from "ecsy";
-import { Destination, Position, PFDestination } from "./movement";
+import { Destination, Position, PFDestination, MovementPath } from "./movement";
 import { Renderable } from "./rendering";
 import { Time } from "./time";
 
@@ -28,15 +28,8 @@ export class Schedule {
     constructor() {
         this.events = [];
         this.repeat = 0; // Time interval when the schedule repeats
+        this.repeat_count = 0;
         this.next = 0;
-    }
-
-    getTime(time) {
-        // Otherwise we will divide by zero *_*
-        if (this.repeat)
-            return time % this.repeat;
-        else
-            return time;
     }
 
     getEvent(time) {
@@ -45,14 +38,16 @@ export class Schedule {
             return null;
         
         // Not yet
-        if (this.events[this.next].time > this.getTime(time))
+        if (this.events[this.next].time + this.repeat*this.repeat_count > time)
             return null;
 
         let event = this.events[this.next++];
 
         // Reset schedule if it's repeating
-        if (this.repeat && this.next == this.events.length)
+        if (this.repeat && this.next == this.events.length) {
             this.next = 0;
+            this.repeat_count++;
+        }
         
         return event;
     }
@@ -66,6 +61,7 @@ export class HumanScheduler extends System {
             let event = schedule.getEvent(time.value);
             if (event) {
                 console.log(event);
+                console.log(time.getHours());
                 e.addComponent(PFDestination, event.data.clone());
             }
         })
@@ -110,5 +106,5 @@ export class HumanSpriteRendering extends System {
 
 HumanSpriteRendering.queries = {
     enlarged: { components: [Renderable, Human, Destination] },
-    small: { components: [Renderable, Human, Not(Destination)] }
+    small: { components: [Renderable, Human, Not(Destination), Not(MovementPath)] }
 };

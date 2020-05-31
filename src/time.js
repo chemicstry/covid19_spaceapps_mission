@@ -3,7 +3,7 @@ import { System } from "ecsy";
 export class Time {
     constructor() {
         // Time in milliseconds
-        this.value = 1;
+        this.value = 5*60*60*1000;
     }
 
     getMinutes() {
@@ -20,12 +20,12 @@ export class Time {
 }
 
 export class TimeSystem extends System {
-    static TIME_SPEED = 1;
+    static TIME_SPEED = 1000.0;
 
     execute(dt) {
         let singleton = this.queries.context.results[0];
         let time = singleton.getComponent(Time);
-        //time.value += dt*TimeSystem.time_speed;
+        time.value += dt*TimeSystem.TIME_SPEED;
     }
 }
 
