@@ -1,6 +1,7 @@
 import { System, Not, TagComponent } from "ecsy";
-import { Destination } from "./movement";
+import { Destination, Position, PFDestination } from "./movement";
 import { Renderable } from "./rendering";
+import { Time } from "./time";
 
 export class Human extends TagComponent {}
 
@@ -8,17 +9,73 @@ export class Infected extends TagComponent {}
 
 export class Tested extends TagComponent {}
 
+export class Event {
+    static Type = {
+        GO_HOME: 1,
+        GO_WORK: 2,
+        GO_SHOPPING: 3,
+        GO_PARK: 4,
+    }
+
+    constructor(event, time, data) {
+        this.event = event;
+        this.time = time;
+        this.data = data;
+    }
+}
+
 export class Schedule {
     constructor() {
-        this.schedule = [];
+        this.events = [];
+        this.repeat = 0; // Time interval when the schedule repeats
         this.next = 0;
     }
 
+    getTime(time) {
+        // Otherwise we will divide by zero *_*
+        if (this.repeat)
+            return time % this.repeat;
+        else
+            return time;
+    }
+
     getEvent(time) {
-        if (!this.schedule.length)
+        // Schedule exhausted
+        if (this.next >= this.events.length)
             return null;
+        
+        // Not yet
+        if (this.events[this.next].time > this.getTime(time))
+            return null;
+
+        let event = this.events[this.next++];
+
+        // Reset schedule if it's repeating
+        if (this.repeat && this.next == this.events.length)
+            this.next = 0;
+        
+        return event;
     }
 }
+
+export class HumanScheduler extends System {
+    execute() {
+        let time = this.queries.context.results[0].getComponent(Time);
+        this.queries.schedulable.results.forEach(e => {
+            let schedule = e.getComponent(Schedule);
+            let event = schedule.getEvent(time.value);
+            if (event) {
+                console.log(event);
+                e.addComponent(PFDestination, event.data.clone());
+            }
+        })
+    }
+}
+
+HumanScheduler.queries = {
+    schedulable: { components: [Schedule] },
+    context: { components: [Time], mandatory: true },
+};
 
 export class HumanSpriteRendering extends System {
     static getColor(e) {

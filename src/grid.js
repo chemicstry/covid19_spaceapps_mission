@@ -70,7 +70,7 @@ export class WalkableGrid {
 
         this.grid = grid;
 
-        let size = grid.size.clone().divide(grid.minor_step);
+        let size = grid.toMinor(grid.size);
 
         this.gridArray = [];
         for (let x = 0; x < size.x; ++x) {
@@ -81,6 +81,7 @@ export class WalkableGrid {
             this.gridArray.push(row);
         }
 
+        // Pathfinding
         this.easystar = new EasyStar.js();
         this.easystar.setGrid(this.gridArray);
         this.easystar.enableDiagonals();
@@ -93,6 +94,8 @@ export class WalkableGrid {
     }
 
     getPath(start, end, callback) {
+        start = this.grid.toMinor(start);
+        end = this.grid.toMinor(end);
         this.easystar.findPath(start.x, start.y, end.x, end.y, (path) => {
             callback(path ? path.map(p => this.grid.fromMinor(new Victor(p.x, p.y))) : null);
         });

@@ -1,9 +1,9 @@
-import { System } from "pixi.js";
+import { System } from "ecsy";
 
 export class Time {
     constructor() {
         // Time in milliseconds
-        this.value = 0;
+        this.value = 1;
     }
 
     getMinutes() {
@@ -20,12 +20,12 @@ export class Time {
 }
 
 export class TimeSystem extends System {
-    static time_speed = 100;
+    static TIME_SPEED = 1;
 
     execute(dt) {
         let singleton = this.queries.context.results[0];
         let time = singleton.getComponent(Time);
-        time.value += dt*time_speed;
+        //time.value += dt*TimeSystem.time_speed;
     }
 }
 

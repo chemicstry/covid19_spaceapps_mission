@@ -1,10 +1,19 @@
 import * as PIXI from 'pixi.js';
-import { random, randomInt } from './utils';
+import { randomInt, shuffle } from './utils';
 
-export class Building {
+export class BuildingDefinition {
+    static Type = {
+        HOME: 1,
+        HOSPITAL: 2,
+        OFFICE: 3,
+        SHOP: 4,
+        PARK: 5,
+    }
+
     constructor(type, texture) {
         this.type = type;
         this.texture = texture;
+        this.positions = []; // Grid positions of placed buildings
     }
 
     createSprite() {
@@ -16,38 +25,56 @@ export class Building {
         sprite.anchor.set(0.5, 1.0);
         return sprite;
     }
+
+    addPosition(pos) {
+        this.positions.push(pos);
+    }
+
+    shufflePositions() {
+        this.positions = shuffle(this.positions);
+    }
+
+    allocatePosition() {
+        // Will be random after `shufflePositions` and more efficient
+        return this.positions.pop();
+    }
 }
 
 export class BuildingRegistry {
-    static BuildingType = {
-        HOME: 1,
-        HOSPITAL: 2,
-        OFFICE: 3,
-        SHOP: 4,
-    }
-
     constructor() {
         this.buildings = [
-            new Building(
-                BuildingRegistry.BuildingType.HOME,
+            new BuildingDefinition(
+                BuildingDefinition.Type.HOME,
                 PIXI.Texture.from(require('assets/home.png'))
             ),
-            new Building(
-                BuildingRegistry.BuildingType.HOSPITAL,
+            new BuildingDefinition(
+                BuildingDefinition.Type.HOSPITAL,
                 PIXI.Texture.from(require('assets/hospital.png'))
             ),
-            new Building(
-                BuildingRegistry.BuildingType.OFFICE,
+            new BuildingDefinition(
+                BuildingDefinition.Type.OFFICE,
                 PIXI.Texture.from(require('assets/office.png'))
             ),
-            new Building(
-                BuildingRegistry.BuildingType.SHOP,
+            new BuildingDefinition(
+                BuildingDefinition.Type.SHOP,
                 PIXI.Texture.from(require('assets/shop.png'))
+            ),
+            new BuildingDefinition(
+                BuildingDefinition.Type.PARK,
+                PIXI.Texture.from(require('assets/park.png'))
             )
         ];
     }
 
     getRandom() {
         return this.buildings[randomInt(0, this.buildings.length)];
+    }
+
+    getByType(type) {
+        for (const building of this.buildings)
+            if (building.type == type)
+                return building;
+
+        return null;
     }
 }

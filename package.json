@@ -26,6 +26,7 @@
     "easystarjs": "^0.4.3",
     "ecsy": "^0.2.4",
     "pixi.js": "^5.2.4",
+    "random": "^2.2.0",
     "victor": "^1.1.0"
   },
   "alias": {

@@ -45,7 +45,7 @@ export class Renderer extends System {
         super(world, attributes);
 
         this.defaultWidth = 1024;
-        this.defaultHeight = 760;
+        this.defaultHeight = 768;
 
         this.pixiApp = new PIXI.Application({
             view: document.getElementById('game'),
@@ -65,8 +65,17 @@ export class Renderer extends System {
 
         // Rotate world container by 45 degrees
         this.worldContainer = new PIXI.Container();
+        this.worldContainer.sortableChildren = true;
         this.worldContainer.rotation = Math.PI / 4;
         this.isoScalingContainer.addChild(this.worldContainer);
+
+        const basicText = new PIXI.Text('Space Society Twente');
+        basicText.x = 0;
+        basicText.y = 0;
+        basicText.style = new PIXI.TextStyle({
+            fill: ['#ffffff', '#00ff99']
+        });
+        this.pixiApp.stage.addChild(basicText);
 
         window.addEventListener('resize', () => this.on_resize());
         this.on_resize();
@@ -99,6 +108,7 @@ export class Renderer extends System {
 
             this.grid = grid;
             this.gridContainer = new PIXI.Container();
+            this.gridContainer.zIndex = -2;
             this.gridGraphics = new PIXI.Graphics();
             this.gridContainer.addChild(this.gridGraphics);
             this.worldContainer.addChild(this.gridContainer);
