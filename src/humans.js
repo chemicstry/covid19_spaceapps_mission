@@ -31,17 +31,17 @@ export class HumanSpriteRendering extends System {
     execute() {
         this.queries.enlarged.results.forEach(e => {
             let graphics = e.getComponent(Renderable).display_object;
-            graphics.scale.set(1.0, 2.0); 
+            graphics.scale.set(1.0, 1.0/0.6); // Fix isometry 
             graphics.rotation = -Math.PI / 4;
             graphics.clear();
-            graphics.lineStyle(6, HumanSpriteRendering.getColor(e));
-            graphics.drawCircle(0, 0, 7);
+            graphics.lineStyle(4, HumanSpriteRendering.getColor(e));
+            graphics.drawCircle(0, 0, 5);
             graphics.endFill();
         });
 
         this.queries.small.results.forEach(e => {
             let graphics = e.getComponent(Renderable).display_object;
-            graphics.scale.set(1.0, 2.0); 
+            graphics.scale.set(1.0, 1.0/0.6); // Fix isometry 
             graphics.rotation = -Math.PI / 4;
             graphics.clear();
             graphics.beginFill(HumanSpriteRendering.getColor(e));

@@ -59,7 +59,7 @@ export class Renderer extends System {
 
         // Create isometric rendering by setting y scale to 0.5
         this.isoScalingContainer = new PIXI.Container();
-        this.isoScalingContainer.scale.y = 0.5;
+        this.isoScalingContainer.scale.y = 0.6;
         this.isoScalingContainer.position.set(this.pixiApp.screen.width / 2, this.pixiApp.screen.height / 2 - 50);
         this.pixiApp.stage.addChild(this.isoScalingContainer);
 
