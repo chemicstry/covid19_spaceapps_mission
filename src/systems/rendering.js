@@ -1,31 +1,9 @@
-import { System, Not, SystemStateComponent } from "ecsy";
-import { Grid } from "./grid.js";
+import { System, Not } from "ecsy";
+import { Grid } from "components/grid.js";
 import * as PIXI from 'pixi.js';
-import { Position } from "./movement.js";
-import { Selected } from "./interraction.js";
-
-// Renderable component where display_object is PIXI.js DisplayObject
-export class Renderable {
-    constructor(display_object) {
-        this.display_object = display_object;
-    }
-
-    reset() {
-        this.display_object = null;
-    }
-}
-
-// Marker component, that this entity was already added to the scene
-export class Rendered extends SystemStateComponent {
-    constructor(display_object) {
-        super();
-        this.display_object = display_object
-    }
-
-    reset() {
-        this.display_object = null;
-    }
-}
+import { Renderable, Rendered } from "components/rendering";
+import { Position } from "components/movement";
+import { Selected } from "components/interraction";
 
 // Updates PIXI.js object positions from Position component
 export class PositionUpdateSystem extends System {
@@ -41,7 +19,7 @@ PositionUpdateSystem.queries = {
     entities: { components: [Renderable, Position] },
 };
 
-export class Renderer extends System {
+export class RenderingSystem extends System {
     constructor(world, attributes) {
         super(world, attributes);
 
@@ -186,7 +164,7 @@ export class Renderer extends System {
     }
 }
 
-Renderer.queries = {
+RenderingSystem.queries = {
     added: { components: [Renderable, Not(Rendered)] },
     removed: { components: [Not(Renderable), Rendered] },
     context: { components: [Grid, Selected], mandatory: true }

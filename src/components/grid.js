@@ -1,5 +1,5 @@
 import Victor from "victor";
-import { inRange } from "./utils";
+import { inRange } from "utils/utils";
 import * as EasyStar from 'easystarjs';
 
 // Game grid

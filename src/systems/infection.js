@@ -1,7 +1,7 @@
 import { System, Not } from "ecsy";
-import { Position } from "./movement";
-import { Human, Infected } from "./humans";
-const random = require('random');
+import { Position } from "components/movement.js";
+import { Human } from "components/human";
+import { Infected } from "components/infection";
 
 export class InfectionSpreadSystem extends System {
     static RATE = 0.01;

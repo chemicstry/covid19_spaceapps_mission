@@ -7,6 +7,7 @@ body {
     margin: 0px;
     background-color: #1A1A60;
     font-family: TitilliumWebBold;
+    font-size: 18px;
     color: #33E2E2;
 }
 
@@ -18,13 +19,15 @@ body {
 
 #game {
     position: absolute;
-    z-index: -1;
 }
 
 #ui {
     position: absolute;
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
 }
 
 .logo {
@@ -33,32 +36,38 @@ body {
 }
 
 .top_ui {
-    padding: 50px;
+    padding-left: 50px;
+    padding-right: 50px;
+}
+
+.top_right_text {
+    float: right;
 }
 
 .selected_panel {
-    border: 3px solid #225A95;
-    background-color: #2780B5;
+    margin-top: 20px;
+    border: 5px solid #225A95;
+    background-color: #2EBAE5;
+    opacity: 0.7;
     width: 200px;
     height: 80px;
 }
 
 .bottom_ui {
-    position: absolute;
-    width: 100%;
-    bottom: 0;
+    margin-top: auto;
+    margin-bottom: 10px;
+    padding-left: 50px;
+    padding-right: 50px;
 }
 
-.bottom_left_text {
-    margin-left: 50px;
-    padding: 10px;
+.bottom_right_text {
+    float: right;
 }
 
 .progress_outer {
+    margin-top: 10px;
     border: 1px solid #2EBAC8;
     padding: 2px;
-    margin-left: 50px;
-    margin-right: 50px;
     margin-bottom: 30px;
 }
 
@@ -66,8 +75,7 @@ body {
     border: 1px solid #2EBAC8;
 }
 
-.progress_bar {
+#progress_bar {
     background-color: #2EBAC8;
     height: 20px;
-    width: 90%;
 }

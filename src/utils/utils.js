@@ -12,6 +12,12 @@ export function inRange(x, min, max) {
     return ((x-min)*(x-max) <= 0); // same as (x >= min && x <= max), but only 1 comparison
 }
 
+export function padNumber(num, size) {
+    var s = num + "";
+    while (s.length < size) s = "0" + s;
+    return s;
+}
+
 /**
  * Shuffles array in place. ES6 version
  * @param {Array} a items An array containing the items.

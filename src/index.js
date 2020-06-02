@@ -1,15 +1,21 @@
-import {World, System} from 'ecsy';
-import {Grid, WalkableGrid} from './grid.js';
-import {Renderer, PositionUpdateSystem, Renderable} from './rendering.js';
+import { BuildingDefinition, BuildingRegistry } from 'components/buildings';
+import { Grid, WalkableGrid } from 'components/grid';
+import { Human, Schedule, Event } from 'components/human';
+import { Infected } from 'components/infection';
+import { Selected } from 'components/interraction';
+import { Position } from 'components/movement';
+import { Renderable } from 'components/rendering';
+import { World } from 'ecsy';
 import * as PIXI from 'pixi.js';
+import { TimeSystem } from 'systems/time';
 import Victor from 'victor';
-import { BuildingRegistry, BuildingDefinition } from './buildings.js';
-import { PathMovementSystem, DestinationMovementSystem, Position, PFDestination } from './movement.js';
-import { Human, HumanSpriteRendering, Schedule, Event, HumanScheduler, ScheduleDisplay, Infected } from './humans.js';
-import { randomInt } from './utils.js';
-import { Time, TimeSystem } from './time.js';
-import { Selected } from './interraction.js';
-import { InfectionSpreadSystem } from './infection.js';
+import { DestinationMovementSystem, PathMovementSystem } from 'systems/movement';
+import { InfectionSpreadSystem } from 'systems/infection';
+import { PositionUpdateSystem, RenderingSystem } from 'systems/rendering';
+import { HumanSchedulingSystem, HumanSpriteRenderingSystem, ScheduleDisplaySystem } from 'systems/human';
+import { UIUpdateSystem } from 'systems/interraction';
+import { Time, VaccineTime } from 'components/time';
+import { randomInt } from 'utils/utils';
 const random = require('random');
 
 function generateBuildings(world, singleton) {
@@ -155,14 +161,15 @@ function start_game() {
 
     world
         .registerSystem(TimeSystem)
-        .registerSystem(HumanScheduler)
+        .registerSystem(HumanSchedulingSystem)
         .registerSystem(DestinationMovementSystem)
         .registerSystem(PathMovementSystem)
         .registerSystem(InfectionSpreadSystem)
         .registerSystem(PositionUpdateSystem)
-        .registerSystem(HumanSpriteRendering)
-        .registerSystem(ScheduleDisplay)
-        .registerSystem(Renderer);
+        .registerSystem(HumanSpriteRenderingSystem)
+        .registerSystem(ScheduleDisplaySystem)
+        .registerSystem(UIUpdateSystem)
+        .registerSystem(RenderingSystem);
 
     let grid = new Grid(new Victor(140, 140), new Victor(20, 20), new Victor(700, 700));
     let walkableGrid = new WalkableGrid(grid);
@@ -171,6 +178,7 @@ function start_game() {
     // Singleton component (resources)
     let singleton = world.createEntity()
         .addComponent(Time)
+        .addComponent(VaccineTime, {value: 2*24*60*60*1000})
         .addComponent(Grid, grid)
         .addComponent(WalkableGrid, walkableGrid)
         .addComponent(BuildingRegistry, buildingRegistry)

@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js';
-import { randomInt, shuffle } from './utils';
+import { randomInt, shuffle } from 'utils/utils';
 
 export class BuildingDefinition {
     static Type = {

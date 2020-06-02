@@ -23,13 +23,18 @@
   },
   "dependencies": {
     "assets": "^3.0.1",
+    "components": "^0.1.0",
     "easystarjs": "^0.4.3",
     "ecsy": "^0.2.4",
     "pixi.js": "^5.2.4",
     "random": "^2.2.0",
+    "src": "^1.1.2",
     "victor": "^1.1.0"
   },
   "alias": {
-    "assets": "./assets"
+    "assets": "./assets",
+    "systems": "./src/systems",
+    "components": "./src/components",
+    "utils": "./src/utils"
   }
 }
