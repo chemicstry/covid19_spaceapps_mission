@@ -4,6 +4,7 @@ import * as PIXI from 'pixi.js';
 import { Renderable, Rendered } from "components/rendering";
 import { Position } from "components/movement";
 import { Selected } from "components/interraction";
+import "utils/graphics";
 
 // Updates PIXI.js object positions from Position component
 export class PositionUpdateSystem extends System {

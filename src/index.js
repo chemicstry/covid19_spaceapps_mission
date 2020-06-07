@@ -10,12 +10,14 @@ import * as PIXI from 'pixi.js';
 import { TimeSystem } from 'systems/time';
 import Victor from 'victor';
 import { DestinationMovementSystem, PathMovementSystem } from 'systems/movement';
-import { InfectionSpreadSystem } from 'systems/infection';
+import { InfectionSpreadSystem, InfectionRevealSystem } from 'systems/infection';
 import { PositionUpdateSystem, RenderingSystem } from 'systems/rendering';
 import { HumanSchedulingSystem, HumanSpriteRenderingSystem, ScheduleDisplaySystem } from 'systems/human';
 import { UIUpdateSystem } from 'systems/interraction';
 import { Time, VaccineTime } from 'components/time';
-import { randomInt } from 'utils/utils';
+import { randomInt } from 'utils/math';
+import { HumanSchedulePoint } from './components/human';
+import { uniqueNamesGenerator, starWars } from 'unique-names-generator';
 const random = require('random');
 
 function generateBuildings(world, singleton) {
@@ -119,41 +121,62 @@ function createHuman(world, singleton, infected) {
         home,
     ));
 
+    const name = uniqueNamesGenerator({
+        dictionaries: [starWars],
+        length: 1
+    });
+
     let graphics = new PIXI.Graphics();
 
     let entity = world.createEntity()
         .addComponent(Renderable, new Renderable(graphics))
         .addComponent(Position, home)
         .addComponent(Schedule, schedule)
-        .addComponent(Human);
+        .addComponent(Human, { name });
     
     if (infected)
         entity.addComponent(Infected, new Infected(0));
 
+    let addEvents = (graphics) => {
+        graphics.interactive = true;
+        graphics.buttonMode = true; // show cursor
+        graphics.on("pointerover", () => {
+            graphics.zIndex = 1;
+            graphics.scale.x = graphics.scale.x * 1.5;
+            graphics.scale.y = graphics.scale.y * 1.5;
+        });
+        graphics.on("pointerout", () => {
+            graphics.zIndex = -1;
+            graphics.scale.x = graphics.scale.x / 1.5;
+            graphics.scale.y = graphics.scale.y / 1.5;
+        });
+        graphics.on("click", (ev) => {
+            ev.stopPropagation();
+            selected.set(entity);
+        });
+        graphics.hitArea = new PIXI.Polygon([
+            0, 10,
+            -14, 0,
+            0, -10,
+            14, 0,
+        ]);
+    }
+
     graphics.scale.set(1.0, 1.0/0.6); // Fix isometry 
     graphics.rotation = -Math.PI / 4;
-    graphics.interactive = true;
-    graphics.buttonMode = true; // show cursor
-    graphics.on("pointerover", () => {
-        graphics.zIndex = 1;
-        graphics.scale.set(1.5, 1.5/0.6);
-    });
-    graphics.on("pointerout", () => {
-        graphics.zIndex = -1;
-        graphics.scale.set(1.0, 1.0/0.6);
-    });
-    graphics.on("click", (ev) => {
-        ev.stopPropagation();
-        selected.set(entity);
-    });
-    graphics.hitArea = new PIXI.Polygon([
-        0, 10,
-        -14, 0,
-        0, -10,
-        14, 0,
-    ]);
     graphics.zIndex = -1;
-    
+    addEvents(graphics);
+
+    // Create renderable entity for each schedule point (x marks)
+    for (const event of schedule.events) {
+        let graphics = new PIXI.Graphics();
+        graphics.zIndex = -1;
+        addEvents(graphics);
+        world.createEntity()
+            .addComponent(Renderable, new Renderable(graphics))
+            .addComponent(HumanSchedulePoint, { human: entity})
+            .addComponent(Position, event.data);
+    }
 }
 
 function start_game() {
@@ -165,6 +188,7 @@ function start_game() {
         .registerSystem(DestinationMovementSystem)
         .registerSystem(PathMovementSystem)
         .registerSystem(InfectionSpreadSystem)
+        .registerSystem(InfectionRevealSystem)
         .registerSystem(PositionUpdateSystem)
         .registerSystem(HumanSpriteRenderingSystem)
         .registerSystem(ScheduleDisplaySystem)

@@ -1,9 +1,13 @@
-import { TagComponent } from "ecsy";
+import { createComponentClass } from "ecsy";
 
-export class Human extends TagComponent {}
+export const Human = createComponentClass({
+    name: { default: "" } // Reference to human entity
+}, "Human");
 
 // Marker where human has scheduled locations
-export class HumanSchedulePoint extends TagComponent {}
+export const HumanSchedulePoint = createComponentClass({
+    human: { default: null } // Reference to human entity
+}, "HumanSchedulePoint");
 
 export class Event {
     static Type = {

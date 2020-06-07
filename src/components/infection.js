@@ -1,5 +1,7 @@
-export class Infected {
-    constructor(time) {
-        this.time = time;
-    }
-}
+import { createComponentClass, TagComponent } from "ecsy";
+
+export const Infected = createComponentClass({
+    time: { default: 0 }
+}, "Infected");
+
+export class InfectedRevealed extends TagComponent {}

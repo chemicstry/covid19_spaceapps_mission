@@ -11,6 +11,16 @@ body {
     color: #33E2E2;
 }
 
+button {
+    font-family: TitilliumWebBold;
+    font-size: 18px;
+    color: #33E2E2;
+}
+
+button:focus {
+    outline: 0;
+}
+
 #container {
     position: relative;
     width: 100vw;
@@ -44,13 +54,74 @@ body {
     float: right;
 }
 
-.selected_panel {
+#selected_panel {
+    position: relative;
+    display: none;
     margin-top: 20px;
-    border: 5px solid #225A95;
+    width: 220px;
+    height: 120px;
+    pointer-events: auto;
+}
+
+#selected_panel .bg {
+    width: 100%;
+    height: 100%;
     background-color: #2EBAE5;
-    opacity: 0.7;
-    width: 200px;
-    height: 80px;
+    opacity: 0.4;
+}
+
+#selected_panel .bg2 {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    width: calc(100% - 10px);
+    height: calc(100% - 10px);
+    background-color: #2EBAE5;
+    opacity: 0.4;
+}
+
+#selected_panel .icon {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background-size: 40px 40px;
+    width: 40px;
+    height: 40px;
+}
+
+.icon.sick {
+    background-image: url('../assets/icon_sick.png');
+}
+
+.icon.healthy {
+    background-image: url('../assets/icon_healthy.png');
+}
+
+#selected_panel .name {
+    position: absolute;
+    top: 25px;
+    left: 75px;
+    color: #33E2E2;
+}
+
+#selected_panel button {
+    position: absolute;
+    top: 75px;
+    width: 80px;
+    height: 27px;
+    text-align: center;
+    border: none;
+    cursor: pointer;
+}
+
+.btn_left {
+    left: 20px;
+    background-color: #33BC7A;
+}
+
+.btn_right {
+    left: 120px;
+    background-color: #5646E3;
 }
 
 .bottom_ui {

@@ -1,7 +1,9 @@
 import { System, Not } from "ecsy";
 import Victor from "victor";
-import { WalkableGrid } from "components/grid";
+import { WalkableGrid, Grid } from "components/grid";
 import { MovementPath, Destination, PFDestination, Position } from "components/movement";
+import { limit } from "utils/math";
+import { Time } from "components/time";
 
 export class PathMovementSystem extends System {
     execute() {
@@ -45,24 +47,31 @@ PathMovementSystem.queries = {
 };
 
 export class DestinationMovementSystem extends System {
-    execute(dt) {
+    execute() {
+        let ctx = this.queries.context.results[0];
+        let grid = ctx.getComponent(Grid);
+        let time = ctx.getComponent(Time);
+        let speed = new Victor(time.dt * 0.0002, time.dt * 0.0002);
+
         this.queries.entities.results.forEach(e => {
             let pos = e.getComponent(Position);
             let dest = e.getComponent(Destination);
             
             // Must be more complicated (implement path finding?)
-            if (dest.distanceSq(pos) < 1.0) {
+            if (dest.distanceSq(pos) < speed.lengthSq()) {
                 pos.copy(dest);
                 e.removeComponent(Destination);
             } else {
                 let dir = dest.clone().subtract(pos).norm();
-                let speed = new Victor(dt * 0.05, dt * 0.05);
                 pos.add(dir.multiply(speed));
+                pos.x = limit(pos.x, 0, grid.size.x);
+                pos.y = limit(pos.y, 0, grid.size.y);
             }
         })
     }
 }
 
 DestinationMovementSystem.queries = {
+    context: { components: [Grid, Time], mandatory: true },
     entities: { components: [Position, Destination] },
 };

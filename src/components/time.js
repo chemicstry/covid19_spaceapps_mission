@@ -2,6 +2,13 @@ export class Time {
     constructor() {
         // Time in milliseconds
         this.value = 2*60*60*1000;
+        this.dt = 0;
+        this.speed = 600.0;
+    }
+
+    update(dt) {
+        this.dt = dt * this.speed;
+        this.value += this.dt;
     }
 
     getMinutes() {

@@ -29,6 +29,7 @@
     "pixi.js": "^5.2.4",
     "random": "^2.2.0",
     "src": "^1.1.2",
+    "unique-names-generator": "^4.2.0",
     "victor": "^1.1.0"
   },
   "alias": {

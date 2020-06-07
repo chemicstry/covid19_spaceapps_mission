@@ -1,12 +1,13 @@
 import { System, Not } from "ecsy";
-import { Destination, PFDestination, MovementPath } from "components/movement";
+import { Destination, PFDestination, MovementPath, Position } from "components/movement";
 import { Renderable } from "components/rendering";
 import { Time } from "components/time";
 import { Selected } from "components/interraction";
 import { WalkableGrid } from "components/grid";
 import * as PIXI from 'pixi.js';
 import { Schedule, Human } from "components/human";
-import { Infected } from "components/infection";
+import { InfectedRevealed } from "components/infection";
+import { HumanSchedulePoint } from "components/human";
 
 export class HumanSchedulingSystem extends System {
     execute() {
@@ -28,7 +29,7 @@ HumanSchedulingSystem.queries = {
 
 export class HumanSpriteRenderingSystem extends System {
     static getColor(e) {
-        if (e.getComponent(Infected) /*&& e.getComponent(Tested)*/)
+        if (e.getComponent(InfectedRevealed) /*&& e.getComponent(Tested)*/)
             return 0xE52E74;
         else
             return 0x33DDAC;
@@ -50,12 +51,39 @@ export class HumanSpriteRenderingSystem extends System {
             graphics.drawCircle(0, 0, 4);
             graphics.endFill();
         });
+
+        this.queries.schedule_points.results.forEach(e => {
+            let graphics = e.getComponent(Renderable).display_object;
+            let human = e.getComponent(HumanSchedulePoint).human;
+            graphics.clear();
+
+            // Only draw when actual human is not in the same place
+            if (e.getComponent(Position).distanceSq(human.getComponent(Position)) > 0) {
+                // Many attempts, still doesn't look right
+                // graphics.beginFill(HumanSpriteRenderingSystem.getColor(human));
+                // graphics.drawEllipse(0, 0, 2, 8);
+                // graphics.drawEllipse(0, 0, 8, 2);
+                // graphics.endFill();
+                // graphics.lineStyle(2, HumanSpriteRenderingSystem.getColor(human));
+                // graphics.moveTo(-4, -4);
+                // graphics.lineTo(4, 4);
+                // graphics.moveTo(4, -4);
+                // graphics.lineTo(-4, 4);
+                graphics.beginFill(HumanSpriteRenderingSystem.getColor(human));
+                graphics.drawRoundedRect(-6, -1.5, 12, 3, 3);
+                graphics.drawRoundedRect(-1.5, -6, 3, 12, 3);
+                graphics.drawEllipse(0, 0, 2, 6);
+                graphics.drawEllipse(0, 0, 6, 2);
+                graphics.endFill();
+            }
+        })
     }
 }
 
 HumanSpriteRenderingSystem.queries = {
     enlarged: { components: [Renderable, Human, Destination] },
-    small: { components: [Renderable, Human, Not(Destination), Not(MovementPath)] }
+    small: { components: [Renderable, Human, Not(Destination), Not(MovementPath)] },
+    schedule_points: { components: [Renderable, HumanSchedulePoint, Position] }
 };
 
 export class ScheduleDisplaySystem extends System {
@@ -82,7 +110,7 @@ export class ScheduleDisplaySystem extends System {
             if (schedule.events.length < 2)
                 return;
             
-            const color = HumanSpriteRendering.getColor(selected);
+            const color = HumanSpriteRenderingSystem.getColor(selected);
 
             let points = [];
             for (var i = 1; i < schedule.events.length; ++i)
@@ -105,7 +133,7 @@ export class ScheduleDisplaySystem extends System {
                     for (let i = 0; i < path.length; ++i) {
                         if (i == 0) {
                             graphics.beginFill(color);
-                            graphics.drawCircle(path[i].x, path[i].y, 4);
+                            //graphics.drawCircle(path[i].x, path[i].y, 4);
                             graphics.endFill();
                             graphics.moveTo(path[i].x, path[i].y);
                         } else
